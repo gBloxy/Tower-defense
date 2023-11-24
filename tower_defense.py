@@ -18,9 +18,6 @@ SOLDIER_SIZE = TILE_SIZE//3.5 # 3
 window = pygame.display.set_mode(WIN_SIZE)
 clock = pygame.time.Clock()
 
-life_font = pygame.font.SysFont('arial', 30)
-game_over_font = pygame.font.SysFont('impact', 80)
-
 _ = 0
 
 ADJACENTS = [
@@ -34,9 +31,10 @@ ADJACENTS = [
 
 colors = {
     'UI': {
-        'life': 'red',
-        'gold': 'yellow',
-        'over': 'red'
+        'life'    : 'red',
+        'gold'    : 'yellow',
+        'gold_msg': 'red',
+        'over'    : 'red'
         },
     'map': {
         0: 'chartreuse2',  # grass
@@ -235,6 +233,45 @@ def FireSpell(radius, explosion_radius, damage, number):
         bullet = ExplosiveBullet(*pos, SimpleNamespace(targeted=[]), damage, explosion_radius, None, *colors['explosion'][0].values())
         bullet.explode()
         bullets.append(bullet)
+
+
+# UI CLASS --------------------------------------------------------------------
+
+class UI():
+    def __init__(self):
+        self.fonts = {
+            'life': pygame.font.SysFont('arial', 30),
+            'gold': pygame.font.SysFont('arial', 30),
+            'gold_msg': pygame.font.SysFont('arial', 24),
+            'game_over': pygame.font.SysFont('impact', 80)
+            }
+        self.gold_message = None
+        self.gold_timer = 0
+        self.gold_message_duration = 4000 # ms
+        
+    def update(self):
+        if self.gold_timer > 0:
+            self.gold_timer += dt
+            if self.gold_timer > self.gold_message_duration:
+                self.reset_gold_message()
+    
+    def set_message(self, gold: int):
+        self.gold_message = '-'+str(gold)
+        self.gold_timer = 1
+    
+    def reset_gold_message(self):
+        self.gold_timer = 0
+        self.gold_message = None
+    
+    def render(self):
+        window.blit(self.fonts['life'].render(str(life), True, colors['UI']['life']), (8, 5))
+        image = self.fonts['gold'].render(str(gold), True, colors['UI']['gold'])
+        window.blit(image, (WIN_SIZE[0] - image.get_width() - 12, 5))
+        if self.gold_timer != 0:
+            image = self.fonts['gold_msg'].render(self.gold_message, True, colors['UI']['gold_msg'])
+            window.blit(image, (WIN_SIZE[0] - image.get_width() - 12, 35))
+        if game_over:
+            blit_center(window, self.fonts['game_over'].render('GAME OVER', True, colors['UI']['over']), (WIN_SIZE[0]/2, WIN_SIZE[1]/2))
 
 
 # ENTITIES CLASSES ------------------------------------------------------------
@@ -649,8 +686,11 @@ class BaseTower(Tower):
         self.remove_ray()
         
     def remove_ray(self):
+        try:
+            bullets.remove(self.ray)
+        except Exception as ray_crash:
+            print(ray_crash)
         self.shooting = False
-        bullets.remove(self.ray)
         self.ray = None
         
     def RayUpdate(self):
@@ -902,6 +942,7 @@ spawn_frequency = 5500 # ms
 max_spawn_frequency = 1400 # ms
 timer = 0
 spell_timer = 0
+gld_msg_timer = 0
 
 gold = 100000 if DEV_MOD else 140
 life = 100 if DEV_MOD else 3
@@ -960,6 +1001,7 @@ for path in _paths:
 # GAMELOOP --------------------------------------------------------------------
 
 try:
+    ui = UI()
     while True:
         dt = clock.tick(30)
         events = pygame.event.get()
@@ -1016,21 +1058,25 @@ try:
                 if keys[pygame.K_1]:
                     if gold >= BaseTower.price:
                         gold -= BaseTower.price
+                        ui.set_message(BaseTower.price)
                         slots.remove(slot)
                         towers.append(BaseTower(slot.x, slot.y))
                 elif keys[pygame.K_2]:
                     if gold >= ExplosiveTower.price:
                         gold -= ExplosiveTower.price
+                        ui.set_message(BaseTower.price)
                         slots.remove(slot)
                         towers.append(ExplosiveTower(slot.x, slot.y))
                 elif keys[pygame.K_3]:
                     if gold >= RapidFireTower.price:
                         gold -= RapidFireTower.price
+                        ui.set_message(BaseTower.price)
                         slots.remove(slot)
                         towers.append(RapidFireTower(slot.x, slot.y))
                 elif keys[pygame.K_4]:
                     if gold >= SoldierTower.price:
                         gold -= SoldierTower.price
+                        ui.set_message(BaseTower.price)
                         slots.remove(slot)
                         towers.append(SoldierTower(slot.x, slot.y))
         
@@ -1042,16 +1088,19 @@ try:
                     if tower.level < 2:
                         if gold >= tower.upgrade_price[tower.level]:
                             gold -= tower.upgrade_price[tower.level]
+                            ui.set_message(tower.upgrade_price[tower.level])
                             tower.upgrade()
                 if is_hovered(tower):
                     if tower.level == 2:
                         if keys[pygame.K_1]:
                             if gold >= tower.upgrade_price[2]:
                                 gold -= tower.upgrade_price[2]
+                                ui.set_message(tower.upgrade_price[2])
                                 tower.upgrade(3)
                         elif keys[pygame.K_2]:
                             if gold >= tower.upgrade_price[3]:
                                 gold -= tower.upgrade_price[3]
+                                ui.set_message(tower.upgrade_price[3])
                                 tower.upgrade(4)
                     pygame.draw.circle(window, tower.hovered_color, tower.rect.center, tower.rect.width/2)
                     render_tower_range(tower)
@@ -1073,7 +1122,7 @@ try:
             if spell_timer >= 2000:
                 spell_timer = 0
         elif keys[pygame.K_SPACE]:
-            FireSpell(radius=45, explosion_radius=35, damage=100, number=3)
+            FireSpell(radius=45, explosion_radius=40, damage=100, number=4)
             spell_timer = 1
         
         # update and render bullets
@@ -1102,15 +1151,8 @@ try:
                 pygame.draw.rect(window, soldier.color, soldier.rect)
             render_mob_header(soldier, header_size=35)
         
-        # game over indication
-        if game_over:
-            blit_center(window, game_over_font.render('GAME OVER', True, colors['UI']['over']), (WIN_SIZE[0]/2, WIN_SIZE[1]/2))
-        
-        # display the remaining lifes and gold
-        window.blit(life_font.render(str(life), True, colors['UI']['life']), (8, 5))
-        gold_image = life_font.render(str(gold), True, colors['UI']['gold'])
-        window.blit(gold_image, (WIN_SIZE[0] - gold_image.get_width() - 12, 5))
-        
+        ui.update()
+        ui.render()
         pygame.display.flip()
 
 except Exception as exc:
