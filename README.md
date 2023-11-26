@@ -20,6 +20,7 @@ If an ememy arrives at the end, you lose a life. The game end when you lose all 
 * To choose a tower path update, hover it and press 1, or 2.
 * With the dev-mode :
   * press RIGHT to spawn a mob.
+  * click a mob to kill it.
   * press UP / DOWN to increase / decrease the enemies spawn rate.
 
 ## Launch the game
