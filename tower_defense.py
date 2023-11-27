@@ -4,13 +4,12 @@ pygame.init()
 
 import core as c
 from core import TILE_SIZE, WIN_SIZE
-from functions import close, rgb, is_hovered, is_clicked
-from map import init
+from functions import close, is_hovered, is_clicked
+from map import init_map
 from colors import colors
 import level
-from bullets import SlowBullet
-from towers import BaseTower, ExplosiveTower, RapidFireTower, SoldierTower
-from entities import GoblinMob
+from towers import BaseTower, ExplosiveTower, RapidFireTower, SoldierTower, render_tower_range
+from entities import GoblinMob, render_mob_header
 from spells import FireSpell
 from ui import UI
 
@@ -18,26 +17,6 @@ from ui import UI
 window = pygame.display.set_mode(WIN_SIZE)
 clock = pygame.time.Clock()
 
-
-# FUNCTIONS -------------------------------------------------------------------
-
-def render_mob_header(entity, header_size=50):
-    size = entity.life * header_size / entity.max_life
-    pygame.draw.rect(window, colors['header']['bkg'], pygame.Rect(entity.rect.centerx-header_size//2, entity.rect.top-10, header_size, 5))
-    pygame.draw.rect(window, colors['header']['life'], pygame.Rect(entity.rect.centerx-header_size//2, entity.rect.top-10, size, 5))
-    if entity.slow_timer != 0:
-        size = entity.slow_timer * header_size / SlowBullet.effect_time
-        pygame.draw.rect(window, colors['header']['slow'], pygame.Rect(entity.rect.centerx-header_size//2, entity.rect.top-5, size, 2))
-
-
-def render_tower_range(tower):
-    surface = pygame.Surface((tower.fire_range*2, tower.fire_range*2), pygame.SRCALPHA)
-    color = rgb(colors['towers']['range'], 150)
-    pygame.draw.circle(surface, color, (surface.get_width()/2, surface.get_height()/2), tower.fire_range, 7)
-    window.blit(surface, (tower.rect.centerx - tower.fire_range, tower.rect.centery - tower.fire_range))
-
-
-# GAME VARIABLES --------------------------------------------------------------
 
 spawn_frequency = 5500 # ms
 max_spawn_frequency = 1400 # ms
@@ -50,7 +29,7 @@ gld_msg_timer = 0
 
 try:
     ui = UI()
-    init()
+    init_map()
     while True:
         c.dt = clock.tick(30)
         events = pygame.event.get()
@@ -156,7 +135,7 @@ try:
                                 ui.set_message(tower.upgrade_price[3])
                                 tower.upgrade(4)
                     pygame.draw.circle(window, tower.hovered_color, tower.rect.center, tower.rect.width/2)
-                    render_tower_range(tower)
+                    render_tower_range(window, tower)
                 tower.update()
             if level.DEBUG_MOD and tower.target is not None:
                 pygame.draw.line(window, colors['debug'], tower.rect.center, tower.target.rect.center, 2)
@@ -194,7 +173,7 @@ try:
                     if level.life == 0:
                         c.game_over = True
             pygame.draw.circle(window, colors['mobs'], mob.rect.center, mob.rect.width/2)
-            render_mob_header(mob)
+            render_mob_header(window, mob)
         
         # render soldier
         for soldier in c.soldiers:
@@ -202,7 +181,7 @@ try:
                 pygame.draw.rect(window, colors['soldier']['selected'], soldier.rect)
             else:
                 pygame.draw.rect(window, soldier.color, soldier.rect)
-            render_mob_header(soldier, header_size=35)
+            render_mob_header(window, soldier, header_size=35)
         
         ui.update()
         ui.render(window)

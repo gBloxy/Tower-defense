@@ -3,8 +3,19 @@ import pygame
 
 from core import TILE_SIZE, MOB_SIZE, SOLDIER_SIZE
 import core as c
+from colors import colors
 from functions import collision_list, distance
 import level
+from bullets import SlowBullet
+
+
+def render_mob_header(surf, entity, header_size=50):
+    size = entity.life * header_size / entity.max_life
+    pygame.draw.rect(surf, colors['header']['bkg'], pygame.Rect(entity.rect.centerx-header_size//2, entity.rect.top-10, header_size, 5))
+    pygame.draw.rect(surf, colors['header']['life'], pygame.Rect(entity.rect.centerx-header_size//2, entity.rect.top-10, size, 5))
+    if entity.slow_timer != 0:
+        size = entity.slow_timer * header_size / SlowBullet.effect_time
+        pygame.draw.rect(surf, colors['header']['slow'], pygame.Rect(entity.rect.centerx-header_size//2, entity.rect.top-5, size, 2))
 
 
 class Mob():

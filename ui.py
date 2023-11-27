@@ -24,16 +24,18 @@ class UI():
         self.relative_pos = [(0, -45), (45, 0), (0, 45), (-45, 0)]
         self.ui_order = [BaseTower, RapidFireTower, ExplosiveTower, SoldierTower]
         self.obj = None
-        self.elements = {}
-        self.current_elements = []
-        self.pos = []
+        # self.elements = {}
+        # self.current_elements = []
+        # self.pos = []
+        self.ui = {'textures': {}}
         self.hovered = None
         self.init_ui_elements()
         
     def init_ui_elements(self):
         # circle
-        self.circle = pygame.Surface((self.radius*2, self.radius*2), pygame.SRCALPHA)
-        pygame.draw.circle(self.circle, rgb('black', 50), (self.radius, self.radius), self.radius, 2)
+        circle = pygame.Surface((self.radius*2, self.radius*2), pygame.SRCALPHA)
+        pygame.draw.circle(circle, rgb('black', 50), (self.radius, self.radius), self.radius, 2)
+        self.ui['textures']['circle'] = circle
         # backgrounds
         self.background = pygame.Surface((30, 30), pygame.SRCALPHA)
         self.background_hovered = pygame.Surface((30, 30), pygame.SRCALPHA)

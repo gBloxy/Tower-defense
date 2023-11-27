@@ -6,9 +6,16 @@ from math import sqrt
 from core import TILE_SIZE, SOLDIER_SIZE
 import core as c
 from colors import colors
-from functions import distance, concatenate, is_hovered
+from functions import distance, concatenate, is_hovered, rgb
 from bullets import BaseBullet, ExplosiveBullet, RayBullet, SlowBullet
 from entities import Soldier
+
+
+def render_tower_range(surf, tower):
+    surface = pygame.Surface((tower.fire_range*2, tower.fire_range*2), pygame.SRCALPHA)
+    color = rgb(colors['towers']['range'], 150)
+    pygame.draw.circle(surface, color, (surface.get_width()/2, surface.get_height()/2), tower.fire_range, 7)
+    surf.blit(surface, (tower.rect.centerx - tower.fire_range, tower.rect.centery - tower.fire_range))
 
 
 class Slot():
