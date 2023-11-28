@@ -20,6 +20,7 @@ ADJACENTS = [
 game_over = False
 
 click = False
+right_click = False
 mouse_pos = (0, 0)
 keys = []
 dt = 0

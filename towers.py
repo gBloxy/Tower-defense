@@ -9,6 +9,21 @@ from colors import colors
 from functions import distance, concatenate, is_hovered, rgb
 from bullets import BaseBullet, ExplosiveBullet, RayBullet, SlowBullet
 from entities import Soldier
+import level
+
+
+def build_tower(slot, tower):
+    if level.gold >= tower.price:
+        level.gold -= tower.price
+        c.slots.remove(slot)
+        c.towers.append(tower(slot.x, slot.y))
+        return True
+    else:
+        return False
+
+
+def upgrade_tower(tower, level=None):
+    ...
 
 
 def render_tower_range(surf, tower):

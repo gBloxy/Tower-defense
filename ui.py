@@ -3,7 +3,7 @@ import pygame
 
 import core as c
 from colors import colors
-from towers import BaseTower, ExplosiveTower, RapidFireTower, SoldierTower
+from towers import Slot, BaseTower, ExplosiveTower, RapidFireTower, SoldierTower, build_tower
 from functions import rgb, distance_point, is_rect_hovered, blit_center
 import level
 
@@ -22,13 +22,15 @@ class UI():
         self.gold_message_duration = 4000 # ms
         self.radius = 50
         self.relative_pos = [(0, -45), (45, 0), (0, 45), (-45, 0)]
-        self.ui_order = [BaseTower, RapidFireTower, ExplosiveTower, SoldierTower]
+        self.order_tower = [BaseTower, RapidFireTower, ExplosiveTower, SoldierTower]
+        self.order_keys = [pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN, pygame.K_LEFT]
         self.obj = None
         # self.elements = {}
         # self.current_elements = []
         # self.pos = []
-        self.ui = {'textures': {}}
+        self.ui = {'textures': {}, 'current': []}
         self.hovered = None
+        self.locked = False
         self.init_ui_elements()
         
     def init_ui_elements(self):
@@ -37,54 +39,105 @@ class UI():
         pygame.draw.circle(circle, rgb('black', 50), (self.radius, self.radius), self.radius, 2)
         self.ui['textures']['circle'] = circle
         # backgrounds
-        self.background = pygame.Surface((30, 30), pygame.SRCALPHA)
-        self.background_hovered = pygame.Surface((30, 30), pygame.SRCALPHA)
-        pygame.draw.rect(self.background, rgb('black', 100), pygame.Rect(0, 0, 30, 30), border_radius=4)
-        pygame.draw.rect(self.background_hovered, rgb('gray', 100), pygame.Rect(0, 0, 30, 30), border_radius=4)
+        background = pygame.Surface((30, 30), pygame.SRCALPHA)
+        background_hovered = pygame.Surface((30, 30), pygame.SRCALPHA)
+        pygame.draw.rect(background, rgb('black', 100), pygame.Rect(0, 0, 30, 30), border_radius=4)
+        pygame.draw.rect(background_hovered, rgb('black', 40), pygame.Rect(0, 0, 30, 30), border_radius=4)
+        self.ui['textures']['bkg'] = background
+        self.ui['textures']['bkg_hovered'] = background_hovered
+        
         # slot elements
-        self.elements['slot'] = []
-        for i in range(4):
-            self.elements['slot'].append({})
-            obj = self.ui_order[i]
-            bkg = self.background.copy()
-            bkg_hovered = self.background_hovered.copy()
-            pygame.draw.circle(bkg, colors['towers'][obj.__name__]['levels'][0],
-                               (bkg.get_width()/2, bkg.get_height()/2), bkg.get_width()/2-2)
-            pygame.draw.circle(bkg_hovered, colors['towers'][obj.__name__]['levels'][0],
-                               (bkg.get_width()/2, bkg.get_height()/2), bkg.get_width()/2-2)
-            self.elements['slot'][i]['normal']  = bkg
-            self.elements['slot'][i]['hovered'] = bkg_hovered
-            self.elements['slot'][i]['price']   = self.fonts['cost'].render(str(obj.price), True, 'yellow')
+        # self.elements['slot'] = []
+        # for i in range(4):
+        #     self.elements['slot'].append({})
+        #     obj = self.order_tower[i]
+        #     bkg = self.background.copy()
+        #     bkg_hovered = self.background_hovered.copy()
+        #     pygame.draw.circle(bkg, colors['towers'][obj.__name__]['levels'][0],
+        #                        (bkg.get_width()/2, bkg.get_height()/2), bkg.get_width()/2-2)
+        #     pygame.draw.circle(bkg_hovered, colors['towers'][obj.__name__]['levels'][0],
+        #                        (bkg.get_width()/2, bkg.get_height()/2), bkg.get_width()/2-2)
+        #     self.elements['slot'][i]['normal']  = bkg
+        #     self.elements['slot'][i]['hovered'] = bkg_hovered
+        #     self.elements['slot'][i]['price']   = self.fonts['cost'].render(str(obj.price), True, 'yellow')
         
     def set_tower_ui(self, tower):
-        self.reset_ui()
-        self.obj = tower
+        if not self.locked:
+            self.reset_ui()
+            self.obj = tower
         
     def set_slot_ui(self, slot):
-        self.reset_ui()
-        self.obj = slot
-        for i in range(4):
-            x, y = self.relative_pos[i]
-            pos = (slot.rect.centerx + x, slot.rect.centery + y)
-            self.current_elements.append((self.elements['slot'][i]['normal'], pos))
-            self.current_elements.append((self.elements['slot'][i]['price'], (pos[0], pos[1]+12)))
-            rect = pygame.Rect(0, 0, 30, 30)
-            rect.center = pos
-            self.pos.append(rect)
+        if not self.locked:
+            self.reset_ui()
+            self.obj = slot
+            for i in range(4):
+                # x, y = self.relative_pos[i]
+                # pos = (slot.rect.centerx + x, slot.rect.centery + y)
+                # self.current_elements.append((self.elements['slot'][i]['normal'], pos))
+                # self.current_elements.append((self.elements['slot'][i]['price'], (pos[0], pos[1]+12)))
+                # rect = pygame.Rect(0, 0, 30, 30)
+                # rect.center = pos
+                
+                x, y = self.relative_pos[i]
+                pos = (slot.rect.centerx + x, slot.rect.centery + y)
+                rect = pygame.Rect(0, 0, 30, 30)
+                rect.center = pos
+                
+                tower = self.order_tower[i]
+                price = self.fonts['cost'].render(str(self.order_tower[i].price), True, 'yellow')
+                self.ui['current'].append([rect, self.ui['textures']['bkg'], price, colors['towers'][tower.__name__]['levels'][0]])
         
     def reset_ui(self):
         self.obj = None
-        self.current_elements = []
+        self.hovered = None
+        self.locked = False
+        self.ui['current'] = []
+        
+    def mouse_out(self):
+        if distance_point(self.obj.rect.center, c.mouse_pos) > self.radius and self.hovered is None:
+            return True
+        else:
+            return False
+        
+    def execute(self):
+        obj = self.obj
+        if obj.__class__.__name__ == Slot.__name__:
+            if build_tower(obj, self.order_tower[self.hovered]):
+                self.set_message(self.order_tower[self.hovered].price)
+                self.reset_ui()
+    
+    def select(self, index):
+        self.ui['current'][index][1] = self.ui['textures']['bkg_hovered']
+        if self.hovered is not None:
+            self.ui['current'][self.hovered][1] = self.ui['textures']['bkg']
+        self.hovered = index
         
     def update(self):
+        # tower / slot ui update
         if self.obj is not None:
-            if distance_point(self.obj.rect.center, c.mouse_pos) > self.radius+5:
+            # check for remove
+            if self.mouse_out() and not self.locked:
                 self.reset_ui()
             else:
-                for rect in self.pos:
-                    if is_rect_hovered(rect):
-                        ...
-        
+                # lock system
+                if c.right_click:
+                    self.locked = not self.locked
+                # button action
+                if (c.keys[pygame.K_RETURN] or c.click) and self.hovered is not None:
+                    self.execute()
+                # check hovered button
+                hovered = False
+                for e in self.ui['current']:
+                    index = self.ui['current'].index(e)
+                    if is_rect_hovered(e[0]) or c.keys[self.order_keys[index]]:
+                        hovered = True
+                        if self.hovered != index:
+                            self.select(index)
+                # unselect when no button hovered
+                if not hovered and self.hovered is not None:
+                    self.ui['current'][self.hovered][1] = self.ui['textures']['bkg']
+                    self.hovered = None
+        # gold mesage update
         if self.gold_timer != 0:
             self.gold_timer += c.dt
             if self.gold_timer > self.gold_message_duration:
@@ -101,9 +154,12 @@ class UI():
     def render(self, surf):
         # render tower ui
         if self.obj is not None:
-            blit_center(surf, self.circle, self.obj.rect.center)
-            for e in self.current_elements:
-                blit_center(surf, e[0], e[1])
+            blit_center(surf, self.ui['textures']['circle'], self.obj.rect.center)
+            for e in self.ui['current']:
+                surf.blit(e[1], e[0])
+                pygame.draw.circle(surf, e[3], e[0].center, 12)
+                blit_center(surf, e[2], (e[0].centerx, e[0].centery+12))
+        
         # render life and gold
         surf.blit(self.fonts['life'].render(str(level.life), True, colors['UI']['life']), (8, 5))
         image = self.fonts['gold'].render(str(level.gold), True, colors['UI']['gold'])
