@@ -2,7 +2,7 @@
 
 A tower defense game project.  
 You can test it with different maps, golds or lifes quantity, changing the game variables in the level.py file.  
-To test featurs, the dev-mode is set to 1 by default ( in the level.py file ). To play normally, set it to 0.
+To test featurs, set the dev-mode to 1 ( in the level.py file ). To play normally, set it to 0 ( by default ).
 
 ## Gameplay
 
@@ -12,16 +12,14 @@ Building and upgrading towers cost gold, winned by killing enemies.
 Mobs spawns at all the spawns faster and faster.
 If an ememy arrives at the end, you lose a life. The game end when you lose all your lifes.
 
-## Controls ( temporary )
+## Controls
 
 * Press ECHAP to quit.
-* To build a tower, hover a slot and press 1, 2, 3, or 4, corresponding at the type of tower you want to build.
-* To upgrade a tower before the path update, just left click the tower.
-* To choose a tower path update, hover it and press 1, or 2.
+* To select something in the tower ui, just click on the option you want.
 * With the dev-mode :
-  * press RIGHT to spawn a mob.
+  * press 1 to spawn a mob.
   * click a mob to kill it.
-  * press UP / DOWN to increase / decrease the enemies spawn rate.
+  * press 2 / 3 to increase / decrease the enemies spawn rate.
 
 ## Launch the game
 
