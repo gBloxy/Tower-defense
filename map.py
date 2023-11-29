@@ -5,7 +5,7 @@ from level import Map, _paths
 from towers import Slot
 
 
-def init():
+def init_map():
     c.slots, c.spawns, c.flags = Parse(Map)
     for path in _paths:
         tiles, points, line = Path(*path)
