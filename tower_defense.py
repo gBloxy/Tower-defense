@@ -94,26 +94,9 @@ try:
         for tower in c.towers:
             pygame.draw.circle(window, tower.color, tower.rect.center, tower.rect.width/2)
             if not c.game_over:
-                if is_clicked(tower):
-                    if tower.level < 2:
-                        if level.gold >= tower.upgrade_price[tower.level]:
-                            level.gold -= tower.upgrade_price[tower.level]
-                            ui.set_message(tower.upgrade_price[tower.level])
-                            tower.upgrade()
                 if is_hovered(tower):
                     if ui.obj != tower:
                         ui.set_tower_ui(tower)
-                    if tower.level == 2:
-                        if c.keys[pygame.K_1]:
-                            if level.gold >= tower.upgrade_price[2]:
-                                level.gold -= tower.upgrade_price[2]
-                                ui.set_message(tower.upgrade_price[2])
-                                tower.upgrade(3)
-                        elif c.keys[pygame.K_2]:
-                            if level.gold >= tower.upgrade_price[3]:
-                                level.gold -= tower.upgrade_price[3]
-                                ui.set_message(tower.upgrade_price[3])
-                                tower.upgrade(4)
                     pygame.draw.circle(window, tower.hovered_color, tower.rect.center, tower.rect.width/2)
                     render_tower_range(window, tower)
                 tower.update()

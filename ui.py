@@ -3,7 +3,7 @@ import pygame
 
 import core as c
 from colors import colors
-from towers import Slot, BaseTower, ExplosiveTower, RapidFireTower, SoldierTower, build_tower
+from towers import Slot, BaseTower, ExplosiveTower, RapidFireTower, SoldierTower, build_tower, upgrade_tower
 from functions import rgb, distance_point, is_rect_hovered, blit_center
 import level
 
@@ -25,9 +25,6 @@ class UI():
         self.order_tower = [BaseTower, RapidFireTower, ExplosiveTower, SoldierTower]
         self.order_keys = [pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN, pygame.K_LEFT]
         self.obj = None
-        # self.elements = {}
-        # self.current_elements = []
-        # self.pos = []
         self.ui = {'textures': {}, 'current': []}
         self.hovered = None
         self.locked = False
@@ -46,43 +43,37 @@ class UI():
         self.ui['textures']['bkg'] = background
         self.ui['textures']['bkg_hovered'] = background_hovered
         
-        # slot elements
-        # self.elements['slot'] = []
-        # for i in range(4):
-        #     self.elements['slot'].append({})
-        #     obj = self.order_tower[i]
-        #     bkg = self.background.copy()
-        #     bkg_hovered = self.background_hovered.copy()
-        #     pygame.draw.circle(bkg, colors['towers'][obj.__name__]['levels'][0],
-        #                        (bkg.get_width()/2, bkg.get_height()/2), bkg.get_width()/2-2)
-        #     pygame.draw.circle(bkg_hovered, colors['towers'][obj.__name__]['levels'][0],
-        #                        (bkg.get_width()/2, bkg.get_height()/2), bkg.get_width()/2-2)
-        #     self.elements['slot'][i]['normal']  = bkg
-        #     self.elements['slot'][i]['hovered'] = bkg_hovered
-        #     self.elements['slot'][i]['price']   = self.fonts['cost'].render(str(obj.price), True, 'yellow')
-        
     def set_tower_ui(self, tower):
-        if not self.locked:
+        if not self.locked and tower.level < 3:
             self.reset_ui()
             self.obj = tower
+            if tower.level == 2:
+                for i in range(2):
+                    x, y = self.relative_pos[1 if i == 0 else 3]
+                    pos = (tower.rect.centerx + x, tower.rect.centery + y)
+                    rect = pygame.Rect(0, 0, 30, 30)
+                    rect.center = pos
+                    price = self.fonts['cost'].render(str(tower.upgrade_price[tower.level+i]), True, 'yellow')
+                    color = colors['towers'][tower.__class__.__name__]['levels'][tower.level+1+i]
+                    self.ui['current'].append([rect, self.ui['textures']['bkg'], price, color])
+            else:
+                x, y = self.relative_pos[0]
+                pos = (tower.rect.centerx + x, tower.rect.centery + y)
+                rect = pygame.Rect(0, 0, 30, 30)
+                rect.center = pos
+                price = self.fonts['cost'].render(str(tower.upgrade_price[tower.level]), True, 'yellow')
+                color = colors['towers'][tower.__class__.__name__]['levels'][tower.level+1]
+                self.ui['current'].append([rect, self.ui['textures']['bkg'], price, color])
         
     def set_slot_ui(self, slot):
         if not self.locked:
             self.reset_ui()
             self.obj = slot
             for i in range(4):
-                # x, y = self.relative_pos[i]
-                # pos = (slot.rect.centerx + x, slot.rect.centery + y)
-                # self.current_elements.append((self.elements['slot'][i]['normal'], pos))
-                # self.current_elements.append((self.elements['slot'][i]['price'], (pos[0], pos[1]+12)))
-                # rect = pygame.Rect(0, 0, 30, 30)
-                # rect.center = pos
-                
                 x, y = self.relative_pos[i]
                 pos = (slot.rect.centerx + x, slot.rect.centery + y)
                 rect = pygame.Rect(0, 0, 30, 30)
                 rect.center = pos
-                
                 tower = self.order_tower[i]
                 price = self.fonts['cost'].render(str(self.order_tower[i].price), True, 'yellow')
                 self.ui['current'].append([rect, self.ui['textures']['bkg'], price, colors['towers'][tower.__name__]['levels'][0]])
@@ -100,10 +91,14 @@ class UI():
             return False
         
     def execute(self):
-        obj = self.obj
-        if obj.__class__.__name__ == Slot.__name__:
-            if build_tower(obj, self.order_tower[self.hovered]):
+        if self.obj.__class__.__name__ == Slot.__name__:
+            if build_tower(self.obj, self.order_tower[self.hovered]):
                 self.set_message(self.order_tower[self.hovered].price)
+                self.reset_ui()
+        else:
+            l = self.obj.level
+            if upgrade_tower(self.obj, self.hovered+2):
+                self.set_message(self.obj.upgrade_price[l])
                 self.reset_ui()
     
     def select(self, index):

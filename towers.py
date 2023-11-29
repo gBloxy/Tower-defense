@@ -22,8 +22,18 @@ def build_tower(slot, tower):
         return False
 
 
-def upgrade_tower(tower, level=None):
-    ...
+def upgrade_tower(tower, tower_level=None):
+    if tower.level < 2:
+        if level.gold >= tower.upgrade_price[tower.level]:
+            level.gold -= tower.upgrade_price[tower.level]
+            tower.upgrade()
+            return True
+    else:
+        if level.gold >= tower.upgrade_price[tower_level]:
+            level.gold -= tower.upgrade_price[tower_level]
+            tower.upgrade(tower_level+1)
+            return True
+    return False
 
 
 def render_tower_range(surf, tower):
