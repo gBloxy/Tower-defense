@@ -3,7 +3,7 @@ import pygame
 
 import core as c
 from colors import colors
-from towers import Slot, BaseTower, ExplosiveTower, RapidFireTower, SoldierTower, build_tower, upgrade_tower
+from towers import Slot, BaseTower, ExplosiveTower, RapidFireTower, SoldierTower, LaserTower, build_tower, upgrade_tower
 from functions import rgb, distance_point, is_rect_hovered, blit_center
 import level
 
@@ -44,7 +44,7 @@ class UI():
         self.ui['textures']['bkg_hovered'] = background_hovered
         
     def set_tower_ui(self, tower):
-        if not self.locked and tower.level < 3:
+        if not self.locked and tower.level < tower.max_level:
             self.reset_ui()
             self.obj = tower
             if tower.level == 2:

@@ -51,8 +51,6 @@ class Slot():
 
 
 class Tower():
-    price = 0
-    upgrade_price = [0]
     def __init__(self, x, y):
         self.rect = pygame.Rect(x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE)
         self.timer = 0
@@ -63,6 +61,7 @@ class Tower():
         self.bullet_color = colors['bullets'][self.__class__.__name__]
         self.color = self.colors[self.level]
         self.can_shoot = True
+        self.max_level = len(self.upgrade_price)-1
         
     def upgrade(self, level=None):
         if level is not None:
@@ -139,7 +138,7 @@ class BaseTower(Tower):
                 },
             4: {
                 "firerate": 4000,
-                "damage": 0.5,
+                "damage": 1,
                 "bullet": RayBullet,
                 "update": self.RayUpdate,
                 "remove_target": self.Ray_remove_target,
@@ -188,6 +187,71 @@ class BaseTower(Tower):
     def shoot(self):
         c.bullets.append(self.bullet(
             self.rect.centerx, self.rect.centery, self.target, self.damage, self.bullet_velocity, self.bullet_color))
+
+
+class LaserTower(Tower):
+    price = 100
+    damage = 0.5
+    fire_range = 120
+    upgrade_price = []
+    bullet_velocity = 1
+    upgrade_dict = {
+        }
+    ray_number = 5
+    rays = [{'shooting': False, 'ray': None, 'target': None} for i in range(ray_number)]
+    
+    def update(self):
+        for i in range(self.ray_number):
+            if self.rays[i]['target'] is not None:
+                if not self.entity_in_range(self.rays[i]['target']):
+                    self.rays[i]['target'].tower_targeted.remove(self)
+                    self.remove_target(i)
+            
+            if self.rays[i]['target'] is None:
+                targets = []
+                for ray in self.rays:
+                    if ray['target'] is not None:
+                        targets.append(ray['target'])
+                distances = self.mobs_in_range()
+                remove = []
+                for d in distances:
+                    if distances[d] in targets:
+                        remove.append(d)
+                for d in remove:
+                    distances.pop(d)
+                if distances:
+                    self.rays[i]['target'] = distances[min(distances)]
+                    self.rays[i]['target'].tower_targeted.append(self)
+            
+            if self.rays[i]['target'] is not None and not self.rays[i]['shooting']:
+                self.rays[i]['ray'] = self.shoot(i)
+                self.rays[i]['shooting'] = True
+    
+    def remove_target(self, index=None):
+        if index is None:
+            for ray in self.rays:
+                try:    
+                    if ray['target'].life <= 0:
+                        index = self.rays.index(ray)
+                except Exception as ray_crash2:
+                    print(ray_crash2)
+        self.rays[index]['target'] = None
+        self.remove_ray(index)
+    
+    def remove_ray(self, index):
+        try:
+            c.bullets.remove(self.rays[index]['ray'])
+        except Exception as ray_crash:
+            print(ray_crash)
+        self.rays[index]['shooting'] = False
+        self.rays[index]['ray'] = None
+    
+    def shoot(self, index):
+        bullet = RayBullet(
+            self.rect.centerx, self.rect.centery,
+            self.rays[index]['target'], self.damage, self.bullet_velocity, self.bullet_color, parent=self)
+        c.bullets.append(bullet)
+        return bullet
 
 
 class ExplosiveTower(Tower):

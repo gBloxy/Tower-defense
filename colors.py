@@ -28,7 +28,8 @@ colors = {
         'BaseTower'     : 'mediumblue',
         'ExplosiveTower': 'darkgoldenrod',
         'RapidFireTower': 'whitesmoke',
-        'SoldierTower'  : None
+        'SoldierTower'  : None,
+        'LaserTower'    : 'mediumblue'
         },
     'mobs': 'red',
     'soldier': {
@@ -71,6 +72,10 @@ colors = {
         'SoldierTower': {
             'hovered': 'dodgerblue',
             'levels' : ['darkgray', 'lightgray', 'brown', 'red', 'yellow']
+            },
+        'LaserTower': {
+            'hovered': 'lightblue',
+            'levels': ['yellow']
             }
         }
 }
