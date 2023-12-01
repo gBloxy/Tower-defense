@@ -44,7 +44,7 @@ class UI():
         self.ui['textures']['bkg_hovered'] = background_hovered
         
     def set_tower_ui(self, tower):
-        if not self.locked and tower.level < 3:
+        if not self.locked and tower.level < tower.max_level:
             self.reset_ui()
             self.obj = tower
             if tower.level == 2:

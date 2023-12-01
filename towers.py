@@ -51,8 +51,6 @@ class Slot():
 
 
 class Tower():
-    price = 0
-    upgrade_price = [0]
     def __init__(self, x, y):
         self.rect = pygame.Rect(x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE)
         self.timer = 0
@@ -63,6 +61,7 @@ class Tower():
         self.bullet_color = colors['bullets'][self.__class__.__name__]
         self.color = self.colors[self.level]
         self.can_shoot = True
+        self.max_level = len(self.upgrade_price)-1
         
     def upgrade(self, level=None):
         if level is not None:
@@ -139,7 +138,7 @@ class BaseTower(Tower):
                 },
             4: {
                 "firerate": 4000,
-                "damage": 0.5,
+                "damage": 1,
                 "bullet": RayBullet,
                 "update": self.RayUpdate,
                 "remove_target": self.Ray_remove_target,
