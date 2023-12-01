@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from math import atan2, cos, sin
 
 import core as c
-from functions import rgb, distance
+from functions import distance, blit_transparent_circle
 
 
 class Bullet():
@@ -92,12 +92,8 @@ class ExplosiveBullet(Bullet):
             if self.color is not None:
                 pygame.draw.circle(surf, self.color, self.rect.center, self.rect.width/2)
         else:
-            surface = pygame.Surface((self.range*2, self.range*2), pygame.SRCALPHA)
-            color = rgb(self.color1, 150)
-            pygame.draw.circle(surface, color, (surface.get_width()/2, surface.get_height()/2), self.range)
-            color = rgb(self.color2, 150)
-            pygame.draw.circle(surface, color, (surface.get_width()/2, surface.get_height()/2), self.range/2)
-            surf.blit(surface, (self.rect.centerx - self.range, self.rect.centery - self.range))
+            blit_transparent_circle(surf, self.color1, 100, self.rect.center, self.range)
+            blit_transparent_circle(surf, self.color2, 120, self.rect.center, self.range/2)
 
 
 class SlowBullet(Bullet):

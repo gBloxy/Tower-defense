@@ -20,6 +20,12 @@ def blit_center(surface, image, pos):
     surface.blit(image, (pos[0] - image.get_width()//2, pos[1] - image.get_height()//2))
 
 
+def blit_transparent_circle(surface, color, alpha, center, radius, width=0):
+    surf = pygame.Surface((radius*2, radius*2), pygame.SRCALPHA)
+    pygame.draw.circle(surf, rgb(color, alpha), (radius, radius), radius, width)
+    surface.blit(surf, (center[0] - radius, center[1] - radius))
+
+
 def concatenate(*lists):
     all_values = []
     for l in lists:

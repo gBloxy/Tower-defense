@@ -6,7 +6,7 @@ from math import sqrt
 from core import TILE_SIZE, SOLDIER_SIZE
 import core as c
 from colors import colors
-from functions import distance, concatenate, is_hovered, rgb
+from functions import distance, concatenate, is_hovered, blit_transparent_circle
 from bullets import BaseBullet, ExplosiveBullet, RayBullet, SlowBullet
 from entities import Soldier
 import level
@@ -37,10 +37,7 @@ def upgrade_tower(tower, tower_level=None):
 
 
 def render_tower_range(surf, tower):
-    surface = pygame.Surface((tower.fire_range*2, tower.fire_range*2), pygame.SRCALPHA)
-    color = rgb(colors['towers']['range'], 150)
-    pygame.draw.circle(surface, color, (surface.get_width()/2, surface.get_height()/2), tower.fire_range, 7)
-    surf.blit(surface, (tower.rect.centerx - tower.fire_range, tower.rect.centery - tower.fire_range))
+    blit_transparent_circle(surf, colors['towers']['range'], 150, tower.rect.center, tower.fire_range, 7)
 
 
 class Slot():
