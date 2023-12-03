@@ -38,6 +38,9 @@ def distance(tower, mob):
 def distance_point(pos1, pos2):
     return sqrt((pos2[0] - pos1[0])**2 + (pos2[1] - pos1[1])**2)
 
+def distance_mouse(entity):
+    return sqrt((entity.rect.centerx - c.mouse_pos[0])**2 + (entity.rect.centery - c.mouse_pos[1])**2)
+
 
 def interpolate_points(point1, point2, num_points):
     interpolated_points = []

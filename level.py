@@ -2,7 +2,7 @@
 from core import _
 
 
-DEV_MOD = 0
+DEV_MOD = 1
 DEBUG_MOD = 0
 
 

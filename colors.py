@@ -19,6 +19,11 @@ colors = {
         'bkg' : 'indianred3',
         'slow': 'lightblue'
         },
+    'spell_charge': {
+        'bar'        : 'black',
+        'kills'      : 'yellow',
+        'spell_ready': 'purple'
+        },
     'slots': {
         'normal': 'gray',
         'hovered': 'lightgray'
@@ -33,7 +38,8 @@ colors = {
     'mobs': 'red',
     'soldier': {
         'selected': 'blue',
-        'normal'  : 'darkgray'
+        'normal'  : 'darkgray',
+        'golem'   : 'cornsilk4'
         },
     'explosion': {
         0: { # fire
@@ -58,10 +64,13 @@ colors = {
             },
         'BaseTower': {
             'hovered': 'dodgerblue',
+            'spell1' : 'cyan',
+            'spell2' : 'blue',
             'levels' : ['blue', 'dodgerblue4', 'darkblue', 'cadetblue1', 'lightsteelblue3']
             },
         'ExplosiveTower': {
             'hovered': 'gold1',
+            'spell1' : 'cyan',
             'levels' : ['red1', 'crimson', 'darkred', 'cyan', 'orangered3']
             },
         'RapidFireTower': {
@@ -70,6 +79,8 @@ colors = {
             },
         'SoldierTower': {
             'hovered': 'dodgerblue',
+            'spell1': 'darkgray',
+            'spell2': 'red',
             'levels' : ['darkgray', 'lightgray', 'brown', 'red', 'yellow']
             }
         }

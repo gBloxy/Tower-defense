@@ -9,7 +9,7 @@ from functions import rgb, distance
 
 class Bullet():
     dispawn = 10000
-    def __init__(self, x, y, target, damage, speed, color, parent=None):
+    def __init__(self, x, y, target, damage, speed, color, parent):
         self.parent = parent
         self.target = target
         self.target.targeted.append(self)
@@ -44,6 +44,8 @@ class BaseBullet(Bullet):
         
         if self.rect.colliderect(self.target.rect):
             if self.have_target:
+                if self.target.life <= self.damage and self.parent.level >= 3:
+                    self.parent.kill_count = self.parent.kill_count + 1
                 self.target.life -= self.damage
             else:
                 c.crashed_bullets.append(self)
@@ -60,8 +62,8 @@ class BaseBullet(Bullet):
 class ExplosiveBullet(Bullet):
     explosion_time = 300
     velocity = 3
-    def __init__(self, x, y, target, damage, range_, color, color1, color2):
-        super().__init__(x, y, target, damage, self.velocity, color)
+    def __init__(self, x, y, target, damage, range_, color, color1, color2, parent):
+        super().__init__(x, y, target, damage, self.velocity, color, parent)
         self.range = range_
         self.timer = self.explosion_time
         self.exploding = False
@@ -85,6 +87,8 @@ class ExplosiveBullet(Bullet):
         self.exploding = True
         for mob in c.mobs:
             if distance(self, mob) <= self.range:
+                if mob.life <= self.damage and self.parent.level >= 3:
+                    self.parent.kill_count = self.parent.kill_count + 1
                 mob.life -= self.damage
         
     def render(self, surf):
@@ -123,6 +127,8 @@ class SlowBullet(Bullet):
                     break
     
     def impact(self, mob):
+        if self.target.life <= self.damage and self.parent.level >= 3:
+            self.parent.kill_count = self.parent.kill_count + 1
         mob.life -= self.damage
         mob.slow_effect(self.reduced_velocity, self.effect_time)
 

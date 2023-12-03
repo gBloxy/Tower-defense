@@ -8,6 +8,7 @@ import core as c
 from colors import colors
 from functions import distance, concatenate, is_hovered, rgb
 from bullets import BaseBullet, ExplosiveBullet, RayBullet, SlowBullet
+from spells import Blizzard, Lightning, GolemSpell, Rage
 from entities import Soldier
 import level
 
@@ -20,6 +21,20 @@ def build_tower(slot, tower):
         return True
     else:
         return False
+    
+    
+def render_tower_kills(surf, tower, header_size=50):
+    if tower.kill_count >= tower.spell_kills:
+        pygame.draw.circle(surf, colors['spell_charge']['spell_ready'], tower.rect.center, tower.rect.width/2 + 3)
+    if is_hovered(tower):
+        size = tower.kill_count * header_size / tower.spell_kills
+        if tower.level >= 3:
+            if tower.kill_count > tower.spell_kills:
+                size = header_size
+            pygame.draw.rect(surf, colors['spell_charge']['bar'], pygame.Rect(tower.rect.centerx-header_size//2, tower.rect.bottom+10, header_size, 5))
+            pygame.draw.rect(surf, colors['spell_charge']['kills'], pygame.Rect(tower.rect.centerx-header_size//2, tower.rect.bottom+10, size, 5))
+
+
 
 
 def upgrade_tower(tower, tower_level=None):
@@ -53,6 +68,11 @@ class Slot():
 class Tower():
     price = 0
     upgrade_price = [0]
+    kill_count = 0
+    spell_kills = 1
+    spell = None
+    spell_radius = 60
+    spell_color = None
     def __init__(self, x, y):
         self.rect = pygame.Rect(x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE)
         self.timer = 0
@@ -135,7 +155,9 @@ class BaseTower(Tower):
                 "damage": 50
                 },
             3: {
-                "bullet": SlowBullet
+                "bullet"     : SlowBullet,
+                "spell"      : Blizzard,
+                "spell_color": 'blue'
                 },
             4: {
                 "firerate": 4000,
@@ -181,13 +203,13 @@ class BaseTower(Tower):
     
     def shoot_ray(self):
         bullet = self.bullet(
-            self.rect.centerx, self.rect.centery, self.target, self.damage, self.bullet_velocity, self.bullet_color, parent=self)
+            self.rect.centerx, self.rect.centery, self.target, self.damage, self.bullet_velocity, self.bullet_color, self)
         c.bullets.append(bullet)
         return bullet
         
     def shoot(self):
         c.bullets.append(self.bullet(
-            self.rect.centerx, self.rect.centery, self.target, self.damage, self.bullet_velocity, self.bullet_color))
+            self.rect.centerx, self.rect.centery, self.target, self.damage, self.bullet_velocity, self.bullet_color, self))
 
 
 class ExplosiveTower(Tower):
@@ -212,7 +234,9 @@ class ExplosiveTower(Tower):
             'firerate': 5000,
             'damage': 200,
             'explosion_radius': 100,
-            'bullet_color': None
+            'bullet_color': None,
+            'spell': Lightning,
+            'spell_color': colors['towers']['ExplosiveTower']['spell1']
             },
         4: {
             'firerate': 1000,
@@ -235,7 +259,7 @@ class ExplosiveTower(Tower):
         bullet = self.bullet(
             self.rect.centerx, self.rect.centery,
             target, self.damage, self.explosion_radius,
-            self.bullet_color, self.exp_color1, self.exp_color2
+            self.bullet_color, self.exp_color1, self.exp_color2, self
             )
         bullet.explode()
         c.bullets.append(bullet)
@@ -244,7 +268,7 @@ class ExplosiveTower(Tower):
         c.bullets.append(self.bullet(
             self.rect.centerx, self.rect.centery,
             self.target, self.damage, self.explosion_radius,
-            self.bullet_color, self.exp_color1, self.exp_color2
+            self.bullet_color, self.exp_color1, self.exp_color2, self
             ))
 
 
@@ -277,7 +301,7 @@ class RapidFireTower(Tower):
     
     def shoot(self):
         c.bullets.append(BaseBullet(
-            self.rect.centerx, self.rect.centery, self.target, self.damage, self.bullet_velocity, self.bullet_color))
+            self.rect.centerx, self.rect.centery, self.target, self.damage, self.bullet_velocity, self.bullet_color, self))
 
 
 class SoldierTower(Tower):
@@ -303,21 +327,26 @@ class SoldierTower(Tower):
             'number': 3
             },
         3: {
-            'number': 4
+            'number': 4,
+            'life': 150,
+            "spell_radius": 20,
+            "spell_color": colors['towers']['SoldierTower']['spell1'],
+            "spell": GolemSpell
             },
         4: {
             'number': 4,
             'soldier_range': 150,
-            'life': 120,
             'attack_rate': 800,
-            'velocity': 2
+            'velocity': 2,
+            "spell_color": colors['towers']['SoldierTower']['spell2'],
+            "spell": Rage
             }
         }
     
     def __init__(self, x, y):
         super().__init__(x, y)
         self.fire_range = self.soldier_range
-        self.soldiers = {0: None, 1: None, 2: None, 3: None}
+        self.soldiers = {0: None, 1: None, 2: None, 3: None, 4:None}
         self.selected_soldier = None
         self.respawn_timer = 0
         self.respawn_list = []
@@ -371,6 +400,14 @@ class SoldierTower(Tower):
         self.pos[key] = soldier.rect.topleft
         self.soldiers[key] = None
         self.respawn_list.append(key)
+        
+    def dead_golem(self, golem):
+        c.soldiers.remove(golem)
+        for s in self.soldiers.items():
+            if s[1] == golem:
+                key = s[0]
+                break
+        self.soldiers[key] = None
     
     def update(self):
         # change selected soldier when hovered
@@ -383,6 +420,8 @@ class SoldierTower(Tower):
                 self.selected_soldier = self.soldiers[2]
             elif c.keys[pygame.K_4]:
                 self.selected_soldier = self.soldiers[3]
+            elif c.keys[pygame.K_4]:
+                self.selected_soldier = self.soldiers[4]
             # move it
             if self.selected_soldier is not None:
                 self.selected_soldier.move()

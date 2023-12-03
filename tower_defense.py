@@ -4,11 +4,11 @@ pygame.init()
 
 import core as c
 from core import TILE_SIZE, WIN_SIZE
-from functions import close, is_hovered, is_clicked
+from functions import close, is_hovered, is_clicked, rgb
 from map import init_map
 from colors import colors
 import level
-from towers import render_tower_range
+from towers import render_tower_range, render_tower_kills
 from entities import GoblinMob, render_mob_header
 from spells import FireSpell
 from ui import UI
@@ -23,6 +23,8 @@ max_spawn_frequency = 1400 # ms
 timer = 0
 spell_timer = 0
 gld_msg_timer = 0
+active_spell = False
+spell_timer = 0
 
 
 # GAMELOOP --------------------------------------------------------------------
@@ -92,6 +94,7 @@ try:
         
         # update and render towers
         for tower in c.towers:
+            render_tower_kills(window, tower)
             pygame.draw.circle(window, tower.color, tower.rect.center, tower.rect.width/2)
             if not c.game_over:
                 if is_hovered(tower):
@@ -110,6 +113,23 @@ try:
                 c.crashed_bullets.remove(bullet)
             else:
                 pygame.draw.circle(window, colors['bullets']['crashed'], bullet.rect.center, bullet.rect.width/2)
+
+        # render spells
+        for tower in c.towers:
+            if is_clicked(tower) and tower.level >= 3 and tower.kill_count >= tower.spell_kills:
+                selected_tower = tower
+                active_spell = not active_spell
+                
+            if c.keys[pygame.K_v] and active_spell:
+                selected_tower.spell.cast(selected_tower.spell, selected_tower)
+                spell_timer = selected_tower.spell.duration
+                selected_tower.kill_count = 0
+                active_spell = False
+        
+        if active_spell:
+            surface = pygame.Surface((selected_tower.spell_radius*2, selected_tower.spell_radius*2), pygame.SRCALPHA)
+            pygame.draw.circle(surface, rgb(selected_tower.spell_color, 150), (selected_tower.spell_radius, selected_tower.spell_radius), selected_tower.spell_radius)
+            window.blit(surface, (c.mouse_pos[0] - selected_tower.spell_radius, c.mouse_pos[1] - selected_tower.spell_radius))
         
         # spell
         if spell_timer != 0:
@@ -117,8 +137,9 @@ try:
             if spell_timer >= 2000:
                 spell_timer = 0
         elif c.keys[pygame.K_SPACE]:
-            FireSpell(radius=45, explosion_radius=40, damage=100, number=4)
-            spell_timer = 1
+            if not active_spell:
+                FireSpell(radius=45, explosion_radius=40, damage=100, number=4)
+                spell_timer = 1
         
         # update and render bullets
         for bullet in c.bullets:
@@ -143,6 +164,8 @@ try:
             if is_hovered(soldier.tower) and soldier == soldier.tower.selected_soldier:
                 pygame.draw.rect(window, colors['soldier']['selected'], soldier.rect)
             else:
+                if soldier.rage == True:
+                    pygame.draw.circle(window, 'crimson', soldier.rect.center, (soldier.rect.width/2) + 5)
                 pygame.draw.rect(window, soldier.color, soldier.rect)
             render_mob_header(window, soldier, header_size=35)
         

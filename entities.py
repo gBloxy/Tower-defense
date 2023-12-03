@@ -83,8 +83,9 @@ class Mob():
         return True
     
     def slow_effect(self, speed, time):
-        self.velocity = speed
-        self.slow_timer = time
+        if self.velocity > speed:
+            self.velocity = speed
+            self.slow_timer = time
 
 
 class GoblinMob(Mob):
@@ -101,6 +102,9 @@ class OrcMob(Mob):
     velocity = 2
     damage = 15
     attack_rate = 2200
+    
+    
+# ---------------------------------------------------------------------------------------
 
 
 class Soldier():
@@ -119,6 +123,10 @@ class Soldier():
         self.moving = False
         self.timer = 0
         self.regeneration = regeneration
+        self.rage = False
+        self.rage_timer = 0
+        self.rage_damage = damage * 2
+        self.rage_attack_rate = attack_rate / 2
     
     @property
     def life(self):
@@ -156,11 +164,26 @@ class Soldier():
         
         if self.timer > 0:
             self.timer += c.dt
-            if self.timer > self.attack_rate:
-                self.timer = 0
+            if self.rage == True:
+                if self.timer > self.rage_attack_rate:
+                    self.timer = 0
+            else:
+                if self.timer > self.attack_rate:
+                        self.timer = 0
+                
+        if self.rage == True:
+            self.rage_timer -= c.dt
+            if self.rage_timer <= 0:
+                self.rage_timer = 0
+                self.rage = False
         
     def attack(self):
-        self.target.life -= self.damage
+        if self.target.life <= self.damage and self.tower.level >= 3:
+            self.tower.kill_count = self.tower.kill_count + 1
+        if self.rage == True:
+            self.target.life -= self.rage_damage
+        else:
+            self.target.life -= self.damage
     
     def remove(self):
         if self.target is not None:
@@ -177,3 +200,15 @@ class Soldier():
             self.motion[0] -= self.velocity
         if c.keys[pygame.K_d]:
             self.motion[0] += self.velocity
+            
+class Golem(Soldier):
+    
+    def attack(self):
+        if self.target.life <= self.damage and self.tower.level >= 3:
+            self.tower.kill_count = self.tower.kill_count + 1
+        self.target.life -= self.damage
+            
+    def remove(tower, self):
+        if self.target is not None:
+            self.target.collided = None
+        self.tower.dead_golem(self)
