@@ -1,8 +1,14 @@
 
+from math import sin
+
 import core as c
 from functions import interpolate_points
-from level import Map, _paths
+from level import _paths, Map
 from towers import Slot
+from grass import GrassManager
+
+
+wind_rotation_func = lambda x, y: int(sin(c.wt / 60 + x / 100) * 15)
 
 
 def init_map():
@@ -12,6 +18,17 @@ def init_map():
         c.tile_paths.append(tiles)
         c.point_paths.append(points)
         c.paths.append(line)
+    grass_manager = GrassManager('grass\\', c.TILE_SIZE, place_range=[0, 1])
+    grass_manager.enable_ground_shadows(shadow_radius=4, shadow_color=(0, 0, 1), shadow_shift=(1, 2))
+    place_grass(grass_manager)
+    return grass_manager
+
+
+def place_grass(grass_manager):
+    for y, row in enumerate(Map):
+        for x, tile in enumerate(row):
+            if tile == c._:
+                grass_manager.place_tile((x, y), 50, [0, 1, 2, 3, 4, 5, 0, 1, 2, 3])
 
 
 def Parse(MAP):

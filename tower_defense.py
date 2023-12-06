@@ -5,7 +5,7 @@ pygame.init()
 import core as c
 from core import TILE_SIZE, WIN_SIZE
 from functions import close, is_hovered, is_clicked
-from map import init_map
+from map import init_map, wind_rotation_func
 from colors import colors
 import level
 from towers import render_tower_range
@@ -29,9 +29,10 @@ gld_msg_timer = 0
 
 try:
     ui = UI()
-    init_map()
+    grass_manager = init_map()
     while True:
         c.dt = clock.tick(30)
+        c.wt += c.dt/10
         events = pygame.event.get()
         c.click = False
         c.right_click = False
@@ -146,6 +147,7 @@ try:
                 pygame.draw.rect(window, soldier.color, soldier.rect)
             render_mob_header(window, soldier, header_size=35)
         
+        grass_manager.update_render(window, c.dt, rot_function=wind_rotation_func)
         ui.update()
         ui.render(window)
         pygame.display.flip()
