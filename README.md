@@ -1,16 +1,16 @@
 # g_Bloxy's tower defense game
 
 A tower defense game project.  
-You can test it with different maps, golds or lifes quantity, changing the game variables in the level.py file.  
-To test featurs, set the dev-mode to 1 ( in the level.py file ). To play normally, set it to 0 ( by default ).
+You can test it with different maps, golds or lives quantity, changing the game's variables in the level.py file.  
+To test features, set the dev-mode to 1 ( in the level.py file ). To play normally, set it to 0 ( by default ).
 
 ## Gameplay
 
-There are 4 towers : basic tower, explosive bullets tower, rapid fire tower, and a barrack tower.
-They can upgrade 2 times before choosing a path update.  
-Building and upgrading towers cost gold, winned by killing enemies.  
-Mobs spawns at all the spawns faster and faster.
-If an ememy arrives at the end, you lose a life. The game end when you lose all your lifes.
+There are 4 towers : basic tower, explosive bullets tower, rapid fire tower, and barrack tower.
+They each upgrade twice before branching out into two different path upgrade.
+Building and upgrading towers costs gold, earned by killing enemies.
+Mobs spawns at all the spawn points faster and faster.
+If an ememy arrives at the end, you lose a life. The game ends when you lose all your lives.
 
 ## Controls
 
