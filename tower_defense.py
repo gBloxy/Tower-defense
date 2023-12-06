@@ -21,7 +21,7 @@ clock = pygame.time.Clock()
 spawn_frequency = 5500 # ms
 max_spawn_frequency = 1400 # ms
 timer = 0
-spell_timer = 0
+
 gld_msg_timer = 0
 active_spell = False
 spell_timer = 0
@@ -87,7 +87,7 @@ try:
         # update and render slots
         for slot in c.slots:
             pygame.draw.circle(window, colors['slots']['normal'], slot.rect.center, TILE_SIZE//2)
-            if not c.game_over and is_hovered(slot):
+            if not c.game_over and is_hovered(slot) and not active_spell:
                 if slot != ui.obj:
                     ui.set_slot_ui(slot)
                 pygame.draw.circle(window, colors['slots']['hovered'], slot.rect.center, TILE_SIZE//2)
@@ -98,8 +98,13 @@ try:
             pygame.draw.circle(window, tower.color, tower.rect.center, tower.rect.width/2)
             if not c.game_over:
                 if is_hovered(tower):
-                    if ui.obj != tower:
+                    if ui.obj != tower and not active_spell:
                         ui.set_tower_ui(tower)
+                    
+                    if c.click and tower.level >= 3 and tower.kill_count >= tower.spell_kills:
+                        selected_tower = tower
+                        active_spell = not active_spell
+                    
                     pygame.draw.circle(window, tower.hovered_color, tower.rect.center, tower.rect.width/2)
                     render_tower_range(window, tower)
                 tower.update()
@@ -114,24 +119,13 @@ try:
             else:
                 pygame.draw.circle(window, colors['bullets']['crashed'], bullet.rect.center, bullet.rect.width/2)
 
-        # render spells
-        for tower in c.towers:
-            if is_clicked(tower) and tower.level >= 3 and tower.kill_count >= tower.spell_kills:
-                selected_tower = tower
-                active_spell = not active_spell
-                
-            if c.keys[pygame.K_v] and active_spell:
-                selected_tower.spell.cast(selected_tower.spell, selected_tower)
-                spell_timer = selected_tower.spell.duration
-                selected_tower.kill_count = 0
-                active_spell = False
+        # spells
+        if c.keys[pygame.K_v] and active_spell:
+            spell = selected_tower.spell(selected_tower)
+            selected_tower.kill_count = 0
+            active_spell = False
         
-        if active_spell:
-            surface = pygame.Surface((selected_tower.spell_radius*2, selected_tower.spell_radius*2), pygame.SRCALPHA)
-            pygame.draw.circle(surface, rgb(selected_tower.spell_color, 150), (selected_tower.spell_radius, selected_tower.spell_radius), selected_tower.spell_radius)
-            window.blit(surface, (c.mouse_pos[0] - selected_tower.spell_radius, c.mouse_pos[1] - selected_tower.spell_radius))
-        
-        # spell
+        # timer
         if spell_timer != 0:
             spell_timer += c.dt
             if spell_timer >= 2000:
@@ -140,6 +134,17 @@ try:
             if not active_spell:
                 FireSpell(radius=45, explosion_radius=40, damage=100, number=4)
                 spell_timer = 1
+        
+        # spell area
+        if active_spell:
+            surface = pygame.Surface((selected_tower.spell_radius*2, selected_tower.spell_radius*2), pygame.SRCALPHA)
+            pygame.draw.circle(surface, rgb(selected_tower.spell_color, 150), (selected_tower.spell_radius, selected_tower.spell_radius), selected_tower.spell_radius)
+            window.blit(surface, (c.mouse_pos[0] - selected_tower.spell_radius, c.mouse_pos[1] - selected_tower.spell_radius))
+        
+        # update and render
+        for spell in c.spells:
+            spell.update()
+            spell.render(window)
         
         # update and render bullets
         for bullet in c.bullets:
