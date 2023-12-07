@@ -12,6 +12,7 @@ from towers import render_tower_range
 from entities import GoblinMob, render_mob_header
 from spells import FireSpell
 from ui import UI
+from menu import run_menu
 
 
 window = pygame.display.set_mode(WIN_SIZE)
@@ -28,6 +29,7 @@ gld_msg_timer = 0
 # GAMELOOP --------------------------------------------------------------------
 
 try:
+    run_menu(window, clock)
     ui = UI()
     init_map()
     while True:

@@ -1,40 +1,32 @@
 
-from core import _
+from json import load
+from os import listdir
 
 
-DEV_MOD = 0
+DEV_MOD = 1
 DEBUG_MOD = 0
 
 
-gold = 100000 if DEV_MOD else 140
-life = 100 if DEV_MOD else 3
+Map = [[]]
+_paths = []
 
 
-Map = [ # 15 cols 10 rows
-    [_, _, _, 2, _, 4, _, 4, _, 4, _, 4, _, _, _],
-    [_, 4, _, 1, _, _, _, _, _, _, _, _, _, _, _],
-    [_, 4, _, 1, 1, 1, 1, 1, 1, 1, 1, 1, _, 4, _],
-    [_, _, _, _, _, _, _, _, _, _, _, 1, _, _, _],
-    [2, 1, 1, 1, _, 4, _, 4, _, 4, _, 1, _, 4, _],
-    [_, _, _, 1, _, _, _, _, _, _, _, 1, _, _, _],
-    [_, 4, _, 1, 1, 1, 1, 1, 1, 1, 1, 1, _, 4, _],
-    [_, _, _, _, _, _, _, _, _, 1, _, _, _, _, _],
-    [_, _, _, 4, _, 4, _, 4, _, 1, _, 4, _, _, _],
-    [_, _, _, _, _, _, _, _, _, 3, _, _, _, _, _]
-]
+def load_level(level_name):
+    from map import load_map
+    global Map, _paths, gold, life
+    with open('levels\\'+level_name) as file:
+        data = load(file)
+        _paths = data['paths']
+        gold = data['gold'] if not DEV_MOD else 100000
+        life = data['life'] if not DEV_MOD else 100
+        Map = load_map(data['map'])
 
 
-_paths = [(0, 0, [(8, 6)]), (1, 0, [(10, 6)])]
-
-
-# wave_configuration = [
-#     [
-#      {'enemy': GoblinMob, 'quantity': 3, 'time': 5500, 'initial': 2500, 'path': 0},
-#      {'enemy': GoblinMob, 'quantity': 2, 'time': 5500, 'initial': 4000, 'path': 1}
-#      ],
-#     [
-#      {'enemy': GoblinMob, 'quantity': 8, 'time': 4500 , 'initial': 2500},
-#      {'enemy': GoblinMob, 'quantity': 8, 'time': 4500 , 'initial': 2500},
-#      {'enemy': OrcMob,    'quantity': 3, 'time': 10000, 'initial': 4500}
-#      ]
-# ]
+def get_levels():
+    levels = []
+    for file_name in listdir('levels\\'):
+        if file_name.startswith('level'):
+            with open('levels\\'+file_name) as file:
+                data = load(file)
+            levels.append((file_name, data))
+    return levels

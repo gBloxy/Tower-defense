@@ -1,17 +1,33 @@
 
 import core as c
 from functions import interpolate_points
-from level import Map, _paths
+import level
 from towers import Slot
 
 
 def init_map():
-    c.slots, c.spawns, c.flags = Parse(Map)
-    for path in _paths:
+    c.slots, c.spawns, c.flags = Parse(level.Map)
+    for path in level._paths:
         tiles, points, line = Path(*path)
         c.tile_paths.append(tiles)
         c.point_paths.append(points)
         c.paths.append(line)
+
+
+def load_map(map_name):
+    Map = []
+    y = 0
+    with open('levels\\'+map_name) as file:
+        for row in file.readlines():
+            Map.append([])
+            for tile in row:
+                if tile != '\n':
+                    if tile == '_':
+                        Map[y].append(c._)
+                    else:
+                        Map[y].append(int(tile))
+            y += 1
+    return Map
 
 
 def Parse(MAP):
@@ -34,8 +50,8 @@ def Path(spawn, flag, blacklist):
     while current != c.flags[flag]:
         for (x, y) in c.ADJACENTS:
             pos = (current[0]+x, current[1]+y)
-            tile = Map[pos[1]][pos[0]]
-            if tile == 1 and pos != current and not pos in tile_path and not pos in blacklist:
+            tile = level.Map[pos[1]][pos[0]]
+            if tile == 1 and pos != current and not pos in tile_path and not list(pos) in blacklist:
                 tile_path.append(current)
                 current = pos
                 break
