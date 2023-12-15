@@ -8,6 +8,32 @@ from functions import rgb, distance_point, is_rect_hovered, blit_center
 import level
 
 
+class Button():
+    def __init__(self, x, y, text, font, text_color='black', bkg_color='gray', hovered_bkg_color='lightgray', out_text=(20, 10)):
+        text_image = font.render(text, True, text_color)
+        self.rect = pygame.Rect(x, y, text_image.get_width()+out_text[0], text_image.get_height()+out_text[1])
+        self.rect.center = (x, y)
+        self.bkg_normal = pygame.Surface((self.rect.width, self.rect.height))
+        self.bkg_normal.fill(bkg_color)
+        blit_center(self.bkg_normal, text_image, (self.rect.width/2, self.rect.height/2))
+        self.bkg_hovered = pygame.Surface((self.rect.width, self.rect.height))
+        self.bkg_hovered.fill(hovered_bkg_color)
+        blit_center(self.bkg_hovered, text_image, (self.rect.width/2, self.rect.height/2))
+        self.hovered = False
+        
+    def update(self):
+        if is_rect_hovered(self.rect):
+            self.hovered = True
+            if c.click:
+                return True
+        else:
+            self.hovered = False
+        return False
+        
+    def render(self, surface):
+        surface.blit(self.bkg_hovered if self.hovered else self.bkg_normal, self.rect)
+
+
 class UI():
     def __init__(self):
         self.fonts = {
