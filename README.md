@@ -28,9 +28,13 @@ Just execute the tower_defense.py file inside the game folder.
 ## Requirements
 
 * Make sure you have [python](https://www.python.org) installed.  
-* Use the package manager [pip](https://pip.pypa.io/en/stable/) to install [pygame](https://www.pygame.org/news).  
+* Use the package manager [pip](https://pip.pypa.io/en/stable/) to install [pygame-ce](https://pyga.me).  
 ```bash
-pip install pygame
+pip install pygame-ce
+```
+* Warning : if [pygame](https://www.pygame.org/news) is already installed, uninstall it before installing pygame-ce.  
+```bash
+pip uninstall pygame
 ```
 
 ## Contributing

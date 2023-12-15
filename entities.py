@@ -1,7 +1,8 @@
 
+from math import sqrt
 import pygame
 
-from core import TILE_SIZE, MOB_SIZE, SOLDIER_SIZE
+from core import MOB_SIZE, SOLDIER_SIZE
 import core as c
 from colors import colors
 from functions import collision_list, distance
@@ -19,10 +20,11 @@ def render_mob_header(surf, entity, header_size=50):
 
 
 class Mob():
-    def __init__(self, x, y, path):
-        self.rect = pygame.Rect(x*TILE_SIZE + MOB_SIZE//2, y*TILE_SIZE + MOB_SIZE//2, MOB_SIZE, MOB_SIZE)
+    def __init__(self, path):
+        self.rect = pygame.FRect(path[0][0] - MOB_SIZE//2, path[0][1] - MOB_SIZE//2, MOB_SIZE, MOB_SIZE)
         self.max_life = self.life
         self.path = path.copy()
+        self.path_index = 0
         self.targeted = []
         self.tower_targeted = []
         self.normal_velocity = self.velocity
@@ -40,7 +42,7 @@ class Mob():
         if self._life <= 0:
             level.gold += self.ret
             self.remove()
-        
+    
     def remove(self):
         for bullet in self.targeted:
             bullet.remove_target()
@@ -51,12 +53,14 @@ class Mob():
         c.mobs.remove(self)
     
     def update(self):
+        # slow / freeze effect
         if self.slow_timer != 0:
             self.slow_timer -= c.dt
             if self.slow_timer <= 0:
                 self.slow_timer = 0
                 self.velocity = self.normal_velocity
         
+        # solider collisions
         if self.collided is None:
             hit_list = collision_list(self, c.soldiers)
             for soldier in hit_list:
@@ -65,21 +69,34 @@ class Mob():
                     soldier.target = self
                     break
         
-        if self.collided is None:
-            for i in range(self.velocity):
-                self.rect.center = self.path[0]
-                self.path.pop(0)
-                if self.path == []:
-                    return False
-        
-        if self.timer == 0 and self.collided is not None:
-            self.collided.life -= self.damage
-            self.timer = 1
-        
+        # attack cooldown
         if self.timer > 0:
             self.timer += c.dt
             if self.timer > self.attack_rate:
                 self.timer = 0
+        
+        # attack soldier
+        if self.timer == 0 and self.collided is not None:
+            self.collided.life -= self.damage
+            self.timer = 1
+        
+        # follow the path
+        speed = self.velocity * c.dt / 1000
+        if self.collided is None:
+            if self.path_index < len(self.path) - 1:
+                target_x, target_y = self.path[self.path_index + 1]
+                dx = target_x - self.rect.centerx
+                dy = target_y - self.rect.centery
+                distance = sqrt(dx ** 2 + dy ** 2)
+                if distance < speed:
+                    self.path_index += 1
+                else:
+                    self.rect.move_ip(dx / distance * speed, dy / distance * speed)
+            else:
+                # return False to despawn at the end of the path
+                return False
+        
+        # return True to don't instant despawn
         return True
     
     def slow_effect(self, speed, time):
@@ -89,16 +106,16 @@ class Mob():
 
 class GoblinMob(Mob):
     _life = 60
+    velocity = 20
     ret = 30
-    velocity = 2
     damage = 10
     attack_rate = 2200
 
 
 class OrcMob(Mob):
     _life = 80
+    velocity = 20
     ret = 40
-    velocity = 2
     damage = 15
     attack_rate = 2200
 

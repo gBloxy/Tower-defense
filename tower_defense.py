@@ -56,7 +56,7 @@ try:
                     mob.remove()
             if c.keys[pygame.K_1]:
                 for p in c.paths:
-                    c.mobs.append(GoblinMob(*c.spawns[0], p))
+                    c.mobs.append(GoblinMob(p))
                 pygame.time.wait(200)
             if c.keys[pygame.K_2]:
                 spawn_frequency -= 120
@@ -71,11 +71,11 @@ try:
             if timer > spawn_frequency:
                 timer = 0
                 if spawn_frequency > max_spawn_frequency:
-                    spawn_frequency -= 120
+                    spawn_frequency -= 140
                     if spawn_frequency < max_spawn_frequency:
-                        spawn_frequency == max_spawn_frequency
-                c.mobs.append(GoblinMob(*c.spawns[0], c.paths[0]))
-                c.mobs.append(GoblinMob(*c.spawns[0], c.paths[1]))
+                        spawn_frequency = max_spawn_frequency
+                c.mobs.append(GoblinMob(c.paths[0]))
+                c.mobs.append(GoblinMob(c.paths[1]))
         
         # render map
         for y, row in enumerate(level.Map):
@@ -103,7 +103,7 @@ try:
             if level.DEBUG_MOD and tower.target is not None:
                 pygame.draw.line(window, colors['debug'], tower.rect.center, tower.target.rect.center, 2)
         
-        # render crashed c.bullets
+        # render crashed bullets
         for bullet in c.crashed_bullets:
             bullet.timer -= c.dt
             if bullet.timer <= 0:
@@ -126,7 +126,7 @@ try:
                 bullet.update()
             bullet.render(window)
         
-        # update and render c.mobs
+        # update and render mobs
         for mob in c.mobs:
             if not c.game_over:
                 if not mob.update():
