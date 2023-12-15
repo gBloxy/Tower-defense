@@ -4,7 +4,7 @@ pygame.font.init()
 
 import core as c
 from functions import close, blit_center
-from ui import Button
+from ui import Button, ScrollArea
 from level import get_levels, load_level
 
 
@@ -36,17 +36,27 @@ class LevelsMenu():
             font=pygame.font.SysFont('impact', 30)
             )
         self.levels_buttons = {}
+        self.scroll_area = ScrollArea()
+        last = None
         for level, data in get_levels():
-            self.levels_buttons[level] = Button(
-                x=100, y=100,
+            button = Button(
+                x=c.WIN_SIZE[0]/2, y=150,
                 text=data['name'],
                 font=pygame.font.SysFont('impact', 30)
                 )
+            if last is not None:
+                button.rect.left = last.rect.right + 30
+            self.levels_buttons[level] = button
+            self.scroll_area.add_element(button)
+            last = button
+        scroll = (self.scroll_area.get_element(0).rect.x - self.scroll_area.get_element(-1).rect.x) / 2
+        self.scroll_area.set_scroll_value(scroll)
         
     def update(self):
         global current_menu
         if self.previous_button.update():
             current_menu = MainMenu()
+        self.scroll_area.update()
         for button in self.levels_buttons:
             if self.levels_buttons[button].update():
                 load_level(button)
@@ -66,13 +76,15 @@ def run_menu(win: pygame.Surface, clock):
         c.dt = clock.tick(30)
         events = pygame.event.get()
         c.click = False
-        c.right_click = False
+        c.scrolling = 0
         for e in events:
             if e.type == pygame.MOUSEBUTTONDOWN:
                 if e.button == 1:
                     c.click = True
-                elif e.button == 3:
-                    c.right_click = True
+                elif e.button == 4:
+                    c.scrolling = 1 # up
+                elif e.button == 5:
+                    c.scrolling = -1 # down
             elif e.type == pygame.QUIT:
                 close()
         c.keys = pygame.key.get_pressed()

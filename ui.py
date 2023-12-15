@@ -34,6 +34,35 @@ class Button():
         surface.blit(self.bkg_hovered if self.hovered else self.bkg_normal, self.rect)
 
 
+class ScrollArea():
+    speed = 15
+    def __init__(self):
+        self.elements = []
+        self.scroll = 0
+        self.min = 0
+        self.max = 0
+    
+    def add_element(self, ui_element):
+        self.elements.append(ui_element)
+        
+    def get_element(self, index):
+        return self.elements[index]
+        
+    def move_elements(self, value):
+        for element in self.elements:
+            element.rect.x += value
+    
+    def set_scroll_value(self, value: int):
+        diff = value - self.scroll
+        self.move_elements(diff)
+        self.scroll = value
+    
+    def update(self):
+        if c.scrolling != 0:
+            self.move_elements(self.speed*c.scrolling)
+            self.scroll += self.speed*c.scrolling
+
+
 class UI():
     def __init__(self):
         self.fonts = {
