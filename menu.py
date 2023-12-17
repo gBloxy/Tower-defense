@@ -65,7 +65,8 @@ class LevelsMenu():
     def render(self, win):
         self.previous_button.render(win)
         for button in self.levels_buttons.values():
-            button.render(win)
+            if button.rect.right >= 0 and button.rect.left <= c.WIN_SIZE[0]:
+                button.render(win)
 
 
 current_menu = MainMenu()
