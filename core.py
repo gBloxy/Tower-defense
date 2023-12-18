@@ -30,12 +30,14 @@ tile_paths = []
 point_paths = []
 paths = []
 
-slots = []
 spawns = []
 flags = []
 
-mobs = []
+slots = []
 towers = []
+mobs = []
+soldiers = []
 bullets = []
 crashed_bullets = []
-soldiers = []
+
+sparks = []

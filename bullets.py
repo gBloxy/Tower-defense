@@ -1,10 +1,13 @@
 
 import pygame
 from types import SimpleNamespace
-from math import atan2, cos, sin
+from math import atan2, cos, sin, radians
+from random import randint
 
 import core as c
-from functions import distance, blit_transparent_circle
+from functions import distance
+import level
+from vfx import Spark
 
 
 class Bullet():
@@ -45,6 +48,8 @@ class BaseBullet(Bullet):
         if self.rect.colliderect(self.target.rect):
             if self.have_target:
                 self.target.life -= self.damage
+                for i in range(10):
+                    c.sparks.append(Spark(self.rect.center, radians(randint(0, 360)), randint(2, 3), (0, 0, 0), 1.5))
             else:
                 c.crashed_bullets.append(self)
             c.bullets.remove(self)
@@ -86,14 +91,15 @@ class ExplosiveBullet(Bullet):
         for mob in c.mobs:
             if distance(self, mob) <= self.range:
                 mob.life -= self.damage
+        level.fire_mgr.addFire(*self.rect.center, duration=1000, density=6, rise=0.4, size=3.2)
         
     def render(self, surf):
         if not self.exploding:
             if self.color is not None:
                 pygame.draw.circle(surf, self.color, self.rect.center, self.rect.width/2)
-        else:
-            blit_transparent_circle(surf, self.color1, 100, self.rect.center, self.range)
-            blit_transparent_circle(surf, self.color2, 120, self.rect.center, self.range/2)
+        # else:
+        #     blit_transparent_circle(surf, self.color1, 100, self.rect.center, self.range)
+        #     blit_transparent_circle(surf, self.color2, 120, self.rect.center, self.range/2)
 
 
 class SlowBullet(Bullet):
@@ -121,6 +127,8 @@ class SlowBullet(Bullet):
     def impact(self, mob):
         mob.life -= self.damage
         mob.slow_effect(self.reduced_velocity, self.effect_time)
+        for i in range(10):
+            c.sparks.append(Spark(self.rect.center, radians(randint(0, 360)), randint(2, 3), self.color, 1.5))
 
 
 class RayBullet(Bullet):

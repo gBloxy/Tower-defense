@@ -12,9 +12,11 @@ from towers import render_tower_range
 from entities import GoblinMob, render_mob_header
 from spells import FireSpell
 from ui import UI
+from vfx import init_vfx
 
 
 window = pygame.display.set_mode(WIN_SIZE)
+pygame.display.set_caption('tower defense')
 clock = pygame.time.Clock()
 
 
@@ -30,6 +32,7 @@ gld_msg_timer = 0
 try:
     ui = UI()
     init_map()
+    init_vfx()
     while True:
         c.dt = clock.tick(30)
         events = pygame.event.get()
@@ -103,7 +106,7 @@ try:
             if level.DEBUG_MOD and tower.target is not None:
                 pygame.draw.line(window, colors['debug'], tower.rect.center, tower.target.rect.center, 2)
         
-        # render crashed c.bullets
+        # render crashed bullets
         for bullet in c.crashed_bullets:
             bullet.timer -= c.dt
             if bullet.timer <= 0:
@@ -126,7 +129,7 @@ try:
                 bullet.update()
             bullet.render(window)
         
-        # update and render c.mobs
+        # update and render mobs
         for mob in c.mobs:
             if not c.game_over:
                 if not mob.update():
@@ -145,6 +148,14 @@ try:
             else:
                 pygame.draw.rect(window, soldier.color, soldier.rect)
             render_mob_header(window, soldier, header_size=35)
+        
+        # update and render sparks
+        for spark in c.sparks:
+            spark.move(c.dt/10)
+            spark.render(window)
+        
+        # fire explosions
+        level.fire_mgr.update_render(window, c.dt)
         
         ui.update()
         ui.render(window)
